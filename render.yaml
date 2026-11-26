@@ -6,7 +6,6 @@ services:
     name: neon-night-drive
     runtime: node
     plan: starter
-    rootDir: neon-night-drive
     buildCommand: npm install --omit=dev
     startCommand: node --disable-warning=ExperimentalWarning server/server.js
     healthCheckPath: /healthz
