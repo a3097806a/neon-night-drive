@@ -41,6 +41,11 @@
       emit(type, data) { (h[type] || []).forEach(fn => fn(data)); },
       send(msg) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(msg)); return true; } return false; },
       connect, close() { manual = true; if (ws) ws.close(); },
+      /** 送出身分：分頁識別碼＋（若已登入）帳號登入憑證。登入或登出後重送即可切換身分 */
+      rehello() {
+        const acc = window.NND.account;
+        c.send({ t: 'hello', token: token(), name, ver: D.GAME_VERSION, session: acc && acc.token ? acc.token : undefined });
+      },
       serverNow() { return performance.now() + c.offset; }
     };
     let ws = null, retry = 0, manual = false, pingTimer = null;
@@ -57,7 +62,7 @@
       try { ws = new WebSocket(url); } catch (e) { setStatus('offline', e.message); schedule(); return; }
       ws.onopen = () => {
         retry = 0; setStatus('online');
-        c.send({ t: 'hello', token: token(), name, ver: D.GAME_VERSION });
+        c.rehello();
         ping(); clearInterval(pingTimer); pingTimer = setInterval(ping, 2000);
       };
       ws.onmessage = ev => {

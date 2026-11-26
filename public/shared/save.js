@@ -25,7 +25,10 @@
       legacy: null,          // 舊版霓虹市區最佳紀錄 { time }
       completed: {},         // 已完成過的地圖 { trackId: true }
       awarded: [],           // 已發放經驗值的比賽 ID（防止重複發放）
-      flags: { chargeTip: false }
+      flags: { chargeTip: false },
+      linked: {},            // 訪客存檔：已處理過「首次登入比較」的帳號 { 帳號ID: 'cloud' | 'merged' }
+      pending: [],           // 帳號快取：尚未上傳的單機獎勵（離線時暫存，上線後重送）
+      cloud: null            // 帳號快取：上次同步的雲端資料摘要
     };
   }
 
@@ -39,6 +42,13 @@
         if (v > 0 && isFinite(v)) s.legacy = { time: v, from: 'v1' };
       } catch (e) { /* 無法讀取時略過 */ }
     }
+    else if (!s.legacy && storage) {
+      // 已是新版存檔但沒有舊版紀錄（例如先開過新版、後來才保留舊鍵）：補讀一次，不刪除原始鍵
+      try {
+        const v = parseFloat(storage.getItem(LEGACY_KEY));
+        if (v > 0 && isFinite(v)) s.legacy = { time: v, from: 'v1' };
+      } catch (e) { /* 略過 */ }
+    }
     const b = blank();
     // 補上新版欄位，保留既有值
     for (const k of Object.keys(b)) if (s[k] == null) s[k] = b[k];
@@ -46,20 +56,47 @@
     s.garage.cos = Object.assign({}, b.garage.cos, s.garage.cos);
     if (!Array.isArray(s.garage.presets)) s.garage.presets = b.garage.presets;
     if (!Array.isArray(s.awarded)) s.awarded = [];
+    if (!Array.isArray(s.pending)) s.pending = [];
+    if (!s.linked || typeof s.linked !== 'object') s.linked = {};
     s.version = VERSION;
     return s;
   }
 
-  function create(storage) {
+  /**
+   * opts.key：存檔鍵（預設訪客存檔 KEY）
+   * opts.legacy：是否讀取第一版舊紀錄（只有訪客存檔需要）
+   */
+  function create(storage, opts) {
     storage = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    opts = Object.assign({ key: KEY, legacy: true }, opts);
+    const key = opts.key;
     let data;
-    try { data = migrate(JSON.parse(storage ? storage.getItem(KEY) || 'null' : 'null'), storage); }
-    catch (e) { data = migrate(null, storage); }
+    try { data = migrate(JSON.parse(storage ? storage.getItem(key) || 'null' : 'null'), opts.legacy ? storage : null); }
+    catch (e) { data = migrate(null, opts.legacy ? storage : null); }
 
     const api = {
       get data() { return data; },
+      key,
       persist() {
-        try { storage && storage.setItem(KEY, JSON.stringify(data)); return true; } catch (e) { return false; }
+        try { storage && storage.setItem(key, JSON.stringify(data)); return true; } catch (e) { return false; }
+      },
+      /** 總經驗值（含之前各級已用掉的經驗） */
+      totalXp() { return D.totalFromLevel(data.profile.level, data.profile.xp); },
+      /** 有沒有值得保留的進度（用於首次登入的比較） */
+      hasProgress() { return api.totalXp() > 0 || Object.keys(data.completed).length > 0; },
+      /** 以雲端帳號資料覆蓋本機快取的車手進度（不動設定、車庫與賽道紀錄） */
+      applyCloud(p) {
+        const lv = D.levelFromTotal(p.totalXp);
+        data.profile.level = lv.level; data.profile.xp = lv.xp;
+        data.profile.name = p.nickname || data.profile.name;
+        data.completed = Object.assign({}, p.completed || {});
+        data.cloud = { accountId: p.id, username: p.username, unlocks: (p.unlocks || []).slice(), updatedAt: p.updatedAt, syncedAt: Date.now() };
+        api.persist();
+      },
+      /** 解鎖後才能使用的外觀若已失效（例如選擇保留雲端進度後等級較低），換回預設 */
+      fixCosmetics() {
+        for (const kind of Object.keys(D.COSMETICS)) if (!api.isUnlocked(kind, data.garage.cos[kind])) data.garage.cos[kind] = D.COSMETICS[kind][0].id;
+        if (data.garage.preset >= api.presetSlots()) data.garage.preset = 0;
       },
       recordKey(trackId, carId) { return `${trackId}|${carId}|v${D.RULES_VERSION}`; },
       getRecord(trackId, carId) { return data.records[api.recordKey(trackId, carId)] || null; },
@@ -128,5 +165,8 @@
     return api;
   }
 
-  return { create, migrate, KEY, LEGACY_KEY, VERSION, LEGACY_RECORD };
+  /** 帳號快取的存檔鍵：每個帳號 ID 一份，不會與訪客存檔互相覆蓋 */
+  const accountKey = id => 'neonNightDrive.acct.' + id;
+
+  return { create, migrate, KEY, LEGACY_KEY, VERSION, LEGACY_RECORD, accountKey };
 });

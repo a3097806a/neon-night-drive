@@ -4,7 +4,9 @@
   const NND = window.NND, D = NND.data, T = NND.track, P = NND.physics, S = NND.sim, R = NND.render, I = NND.input, Net = NND.net;
   const $ = id => document.getElementById(id);
   const DT = D.SIM_DT;
-  const save = NND.save.create();
+  const Acc = NND.account;
+  const guest = NND.save.create();     // 訪客存檔：只在此裝置
+  let save = guest;                    // 目前使用中的存檔（登入後切換為該帳號的雲端快取）
   const AI_NAMES = ['阿凱', '小雨', '老周', '米亞', '阿哲', '柚子', '黑貓'];
   const fmt = t => {
     if (t == null || !isFinite(t)) return '--:--.--';
@@ -15,7 +17,7 @@
   const isApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
   /* ================= 畫面 ================= */
-  const SCREENS = ['scrMenu', 'scrTracks', 'scrGarage', 'scrMp', 'scrLobby', 'scrResults', 'scrPause', 'scrSettings', 'scrHelp'];
+  const SCREENS = ['scrMenu', 'scrTracks', 'scrGarage', 'scrMp', 'scrLobby', 'scrResults', 'scrPause', 'scrSettings', 'scrHelp', 'scrAccount', 'scrMerge'];
   let screen = 'scrMenu';
   function show(id) {
     screen = id;
@@ -25,6 +27,8 @@
     if (id === 'scrTracks') renderTracks();
     if (id === 'scrSettings') renderSettings();
     if (id === 'scrMp') openMp();
+    if (id === 'scrAccount') renderAccount();
+    if (id === 'scrMenu') autoSync();
     refreshUpdateBtn();
   }
   function hideScreens() { SCREENS.forEach(s => $(s).classList.add('hidden')); screen = null; }
@@ -59,7 +63,19 @@
       <div class="bar"><i style="width:${Math.min(100, p.xp / need * 100).toFixed(1)}%"></i></div>
       <div class="hint">下一個獎勵：${esc(next)}</div>`;
   }
+  function renderAcctBar() {
+    const l = Acc.label();
+    $('acctWho').innerHTML = Acc.loggedIn ? `車手 <b>${esc(save.data.profile.name || '')}</b>（${esc(Acc.session.username)}）` : '訪客';
+    $('acctSync').textContent = l.text; $('acctSync').className = 'sync ' + l.cls;
+    $('acctBtn').textContent = Acc.loggedIn ? '帳號' : '登入／註冊';
+    $('scopeTxt').innerHTML = Acc.loggedIn
+      ? '已登入：暱稱、經驗值、等級、已解鎖項目與已完成地圖儲存在<b>雲端帳號</b>，換裝置登入也看得到。賽道紀錄、幽靈車、設定與車庫搭配儲存在此裝置。'
+      : '訪客進度<b>儲存在此裝置</b>（此瀏覽器、此網址）。清除網站資料、換瀏覽器或換裝置都不會帶過去。登入後可把進度存到雲端。';
+    if (screen === 'scrAccount') renderAccount();
+  }
+  Acc.onChange(renderAcctBar);
   function renderMenu() {
+    renderAcctBar();
     $('menuLevel').innerHTML = levelHtml();
     const lg = save.data.legacy;
     $('legacyNote').classList.toggle('hidden', !lg);
@@ -183,8 +199,8 @@
   $('setTouch').addEventListener('change', e => { save.data.settings.forceTouch = e.target.checked; save.persist(); });
   $('setQuality').addEventListener('change', e => { save.data.settings.quality = e.target.value; renderer.setQuality(e.target.value); save.persist(); });
   $('resetSave').addEventListener('click', () => {
-    if (!confirm('確定要清除本機進度嗎？等級、解鎖與紀錄都會刪除（舊版紀錄 neonNightDriveBest 仍保留在瀏覽器中）。')) return;
-    save.reset(); toast('已清除本機進度'); renderSettings();
+    if (!confirm('確定要清除此裝置的訪客進度嗎？訪客的等級、解鎖與紀錄都會刪除（雲端帳號不受影響；舊版紀錄 neonNightDriveBest 仍保留在瀏覽器中）。')) return;
+    guest.reset(); toast('已清除此裝置的訪客進度'); renderSettings();
   });
 
   /* ================= 單機遊戲 ================= */
@@ -343,14 +359,37 @@
       isNew = save.submitTime(G.trackId, me.carId, me.finishTime, race.opts.laps, { dt: 0.1, f: G.rec });
       if (isNew) parts.push({ label: '刷新個人紀錄', xp: D.XP.newRecord });
     }
-    if (me.finished && save.markCompleted(G.trackId)) parts.push({ label: `首次完成「${tdef.name}」`, xp: D.XP.firstMap });
-    const xp = save.awardXP(race.raceId, parts);
-    showResults({
+    const res = {
       title: me.finished ? (G.mode === 'arcade' ? `第 ${me.rank} 名完賽！` : '完賽！') : '未完賽',
       time: me.finished ? me.finishTime : null, isNew, laps: me.lapTimes,
-      standings: G.mode === 'arcade' ? st : null, meId: 'me', parts, xp,
+      standings: G.mode === 'arcade' ? st : null, meId: 'me', parts, xp: null,
       legacy: G.trackId === 'city' && G.mode === 'tt' ? save.data.legacy : null
+    };
+    if (Acc.loggedIn && save !== guest) {
+      // 已登入：獎勵由伺服器依比賽事實計算並寫入帳號（比賽 ID 去重）；首次完成地圖由雲端判斷
+      res.xp = { pending: true };
+      showResults(res);
+      const mirror = save;
+      Acc.submitSolo(mirror, { raceId: race.raceId, mode: G.mode, trackId: G.trackId, finished: me.finished, rank: me.rank, cars: race.cars.length, newRecord: isNew })
+        .then(r => { if (screen === 'scrResults' && G && G.race === race) renderXp(cloudParts(r), cloudXp(r)); renderAcctBar(); });
+      return;
+    }
+    if (me.finished && save.markCompleted(G.trackId)) parts.push({ label: `首次完成「${tdef.name}」`, xp: D.XP.firstMap });
+    res.xp = save.awardXP(race.raceId, parts);
+    showResults(res);
+  }
+  /** 把伺服器回傳的雲端結果轉成結算畫面格式 */
+  const cloudParts = r => (r && r.parts) || [];
+  function cloudXp(r) {
+    if (!r) return { error: '無法寫入帳號' };
+    if (r.pending) return { pending: true, offline: true };
+    if (r.error) return { error: r.msg || (r.error === 'SERVER' ? '伺服器暫時無法寫入資料庫' : r.error) };
+    const names = (r.unlocked || []).map(u => {
+      const [kind, id] = u.split(':');
+      if (kind === 'preset') return `技能配置欄 ${+id + 1}`;
+      const c = (D.COSMETICS[kind] || []).find(x => x.id === id); return c ? c.name : u;
     });
+    return { granted: r.granted, total: r.total, levelsGained: r.levelsGained || 0, unlocked: names.map(name => ({ name })), cloud: true };
   }
 
   function showResults(r) {
@@ -366,20 +405,26 @@
          <td>${s.finished ? fmt(s.time) : s.dnf ? '未完賽' : '—'}</td><td>${fmt(s.best)}</td></tr>`).join('');
       tb.classList.remove('hidden');
     } else tb.classList.add('hidden');
-    const x = r.xp;
-    let xh = '';
-    if (x && x.granted) {
-      xh = r.parts.map(p => `${esc(p.label)} +${p.xp}`).join('　') + `<br>合計 +${x.total} 經驗`;
-      if (x.levelsGained) xh += `<br><span class="lv">升級！Lv ${save.level()}</span>`;
-      if (x.unlocked.length) xh += `<br>解鎖：${x.unlocked.map(u => esc(u.name)).join('、')}`;
-    } else if (x && !x.granted && r.parts.length) xh = '<span class="hint">這場的經驗值已經領取過</span>';
-    $('resXp').innerHTML = xh;
+    renderXp(r.parts, r.xp);
     const mp = G && G.mode === 'mp';
     $('resAgain').textContent = mp ? (amHost() ? '再戰（回到房間）' : '回到房間') : '重新開始';
     $('resMenu').textContent = mp ? '離開房間' : '返回選單';
     $('resWait').classList.add('hidden');
     leaveRaceUI();
     show('scrResults');
+  }
+  function renderXp(parts, x) {
+    const where = x && x.cloud ? '（已寫入雲端帳號）' : Acc.loggedIn ? '' : '（儲存在此裝置）';
+    let xh = '';
+    if (x && x.pending) xh = x.offline ? '<span class="hint">目前離線：成績已暫存在此裝置，連線後會自動寫入帳號（同一場只會計算一次）</span>' : '<span class="hint">正在寫入雲端帳號…</span>';
+    else if (x && x.error) xh = `<span class="err">經驗值未寫入：${esc(x.error)}</span>`;
+    else if (x && x.granted) {
+      xh = parts.map(p => `${esc(p.label)} +${p.xp}`).join('　') + `<br>合計 +${x.total} 經驗${where}`;
+      if (x.levelsGained) xh += `<br><span class="lv">升級！Lv ${save.level()}</span>`;
+      if (x.unlocked && x.unlocked.length) xh += `<br>解鎖：${x.unlocked.map(u => esc(u.name)).join('、')}`;
+    } else if (x && !x.granted && (parts.length || x.total)) xh = `<span class="hint">這場的經驗值已經領取過${x.total ? `（+${x.total}）` : ''}，不會重複計算</span>`;
+    if (Acc.loggedIn && x && !x.pending) xh += `<br><span class="hint">Lv ${save.level()}・經驗 ${Math.floor(save.data.profile.xp)} / ${save.xpNeeded()}・${esc(Acc.label().text)}</span>`;
+    $('resXp').innerHTML = xh;
   }
   $('resAgain').addEventListener('click', () => {
     if (G && G.mode === 'mp') { if (amHost()) net.send({ t: 'rematch' }); G = null; showLobby(); return; }
@@ -598,7 +643,9 @@
   function nickOk() {
     const n = $('nick').value.replace(/[\u0000-\u001f]/g, '').trim();
     if (!n) { $('mpErr').textContent = '請先輸入暱稱'; $('nick').focus(); return null; }
-    save.data.profile.name = n.slice(0, 12); save.persist();
+    const nick = n.slice(0, 12);
+    if (Acc.loggedIn && nick !== save.data.profile.name) Acc.setNickname(nick).then(r => save.applyCloud(r.profile)).catch(() => {});
+    save.data.profile.name = nick; save.persist();
     return save.data.profile.name;
   }
   $('mpCreate').addEventListener('click', () => { const n = nickOk(); if (n) { $('mpErr').textContent = ''; net.send({ t: 'create', name: n }); } });
@@ -775,9 +822,20 @@
       if (!m.raceId) return;
     }
     const meRow = m.standings.find(s => s.id === net.id);
-    const parts = (m.xp && m.xp[net.id]) ? m.xp[net.id].slice() : [];
-    if (meRow && meRow.finished && save.markCompleted(m.trackId)) parts.push({ label: `首次完成「${D.TRACKS[m.trackId].name}」`, xp: D.XP.firstMap });
-    const xp = save.awardXP(m.raceId, parts);
+    let parts = (m.xp && m.xp[net.id]) ? m.xp[net.id].slice() : [];
+    let xp;
+    if (m.cloud) {
+      // 已登入：伺服器已依正式結果寫入資料庫；這裡只套用伺服器回傳的帳號進度，不在本機另外加經驗
+      if (m.cloud.profile && save !== guest) save.applyCloud(m.cloud.profile);
+      if (!m.cloud.error) { Acc.lastSync = Date.now(); Acc.status = 'synced'; }
+      parts = cloudParts(m.cloud); xp = cloudXp(m.cloud);
+    } else if (Acc.loggedIn) {
+      // 已登入但伺服器沒有這場的帳號結果（例如比賽開始前登入已失效）：不寫入本機，避免與帳號進度分歧
+      xp = { error: '這場比賽開始時沒有以帳號身分連線，經驗值未寫入帳號' };
+    } else {
+      if (meRow && meRow.finished && save.markCompleted(m.trackId)) parts.push({ label: `首次完成「${D.TRACKS[m.trackId].name}」`, xp: D.XP.firstMap });
+      xp = save.awardXP(m.raceId, parts);
+    }
     if (G && G.mode === 'mp') G.ended = true;
     else G = { mode: 'mp', ended: true, raceId: m.raceId };
     showResults({
@@ -786,6 +844,173 @@
       standings: m.standings.map(s => Object.assign({}, s, { carId: s.car })), meId: net.id, parts, xp
     });
   }
+
+  /* ================= 車手帳號與雲端存檔 ================= */
+  const accountSave = id => NND.save.create(localStorage, { key: NND.save.accountKey(id), legacy: false });
+  /** 取得此帳號在本裝置的快取；第一次在這台裝置使用時，複製此裝置的設定、車庫與賽道紀錄（訪客存檔不變） */
+  function mirrorFor(profile) {
+    const m = accountSave(profile.id);
+    if (!m.data.cloud) {
+      const g = JSON.parse(JSON.stringify(guest.data));
+      m.data.settings = g.settings; m.data.garage = g.garage; m.data.records = g.records; m.data.legacy = g.legacy; m.data.flags = g.flags;
+    }
+    m.applyCloud(profile); m.fixCosmetics(); m.persist();
+    return m;
+  }
+  function useSave(s) {
+    save = s;
+    I.setAutoThrottle(save.data.settings.autoThrottle);
+    renderer.setQuality(save.data.settings.quality);
+    if (net && net.status === 'online') net.rehello(); // 讓伺服器知道目前的帳號身分
+    renderAcctBar();
+    if (screen === 'scrMenu') renderMenu();
+  }
+  function activate(profile) { Acc.lastSync = Date.now(); Acc.status = 'synced'; useSave(mirrorFor(profile)); }
+  Acc.onChange(() => { if (!Acc.loggedIn && save !== guest) useSave(guest); });
+
+  function unlockNames(list) {
+    return (list || []).filter(u => !u.endsWith(':stock') && !u.endsWith(':basic') && !u.endsWith(':red') && !u.endsWith(':none') && u !== 'preset:0').map(u => {
+      const [kind, id] = u.split(':');
+      if (kind === 'preset') return `技能配置欄 ${+id + 1}`;
+      const c = (D.COSMETICS[kind] || []).find(x => x.id === id); return c ? c.name : u;
+    });
+  }
+
+  let authMode = 'login';
+  function setAuthMode(mode) {
+    authMode = mode;
+    $('tabLogin').classList.toggle('sel', mode === 'login'); $('tabReg').classList.toggle('sel', mode === 'register');
+    $('auNickRow').classList.toggle('hidden', mode !== 'register');
+    $('auSubmit').textContent = mode === 'login' ? '登入' : '註冊並登入';
+    $('auPass').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+    if (mode === 'register' && !$('auNick').value) $('auNick').value = guest.data.profile.name || '';
+    $('auErr').textContent = '';
+  }
+  $('tabLogin').addEventListener('click', () => setAuthMode('login'));
+  $('tabReg').addEventListener('click', () => setAuthMode('register'));
+  $('acctBtn').addEventListener('click', () => show('scrAccount'));
+
+  function renderAccount() {
+    const li = Acc.loggedIn && save !== guest;
+    $('acctGuest').classList.toggle('hidden', li); $('acctUser').classList.toggle('hidden', !li);
+    $('auSubmit').disabled = !Acc.available;
+    if (!Acc.available) $('auErr').textContent = '目前沒有連到遊戲伺服器（以檔案直接開啟，或 App 尚未設定伺服器），無法登入。訪客模式仍可正常遊玩。';
+    if (!li) return;
+    if (document.activeElement !== $('acNick')) $('acNick').value = save.data.profile.name || '';
+    $('acUser').textContent = Acc.session.username;
+    $('acId').textContent = Acc.session.accountId;
+    $('acLevel').innerHTML = levelHtml();
+    const names = unlockNames(save.data.cloud && save.data.cloud.unlocks);
+    $('acUnlocks').textContent = `已解鎖 ${names.length} 項${names.length ? '：' + names.join('、') : ''}`;
+    const l = Acc.label(); $('acSync').textContent = l.text; $('acSync').className = 'sync ' + l.cls;
+  }
+
+  $('authForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const user = $('auUser').value.trim(), pass = $('auPass').value, nick = $('auNick').value.trim();
+    $('auErr').textContent = '';
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(user)) { $('auErr').textContent = '帳號需為 3～20 個英文字母、數字或底線'; return; }
+    if (pass.length < 8) { $('auErr').textContent = '密碼至少 8 個字元'; return; }
+    if (authMode === 'register' && !nick) { $('auErr').textContent = '請輸入車手暱稱'; return; }
+    $('auSubmit').disabled = true;
+    try {
+      const r = authMode === 'login' ? await Acc.login(user, pass) : await Acc.register(user, pass, nick);
+      Acc.saveSession(r.token, r.profile);
+      $('auPass').value = '';
+      afterLogin(r.profile);
+    } catch (err) {
+      $('auErr').textContent = err.network ? '無法連到伺服器，請確認網路後再試' : (err.msg || '登入失敗');
+    } finally { $('auSubmit').disabled = !Acc.available; }
+  });
+
+  /** 登入成功後：此裝置若有尚未處理的訪客進度，先讓玩家比較並選擇 */
+  function afterLogin(profile) {
+    if (guest.hasProgress() && !guest.data.linked[profile.id]) { showMerge(profile); return; }
+    activate(profile);
+    show('scrMenu');
+    toast(`已登入：${profile.nickname}`);
+  }
+
+  let mergeProfile = null;
+  function summaryHtml(o) {
+    const done = D.TRACK_ORDER.filter(t => o.completed[t]).map(t => D.TRACKS[t].name);
+    return `<p>等級 <b>Lv ${o.level}</b>（總經驗 ${o.total}）</p><p>已解鎖 ${o.unlocks.length} 項${o.unlocks.length ? '：' + esc(o.unlocks.join('、')) : ''}</p>
+      <p>已完成地圖：${done.length ? esc(done.join('、')) : '無'}</p>${o.extra || ''}`;
+  }
+  function showMerge(profile) {
+    mergeProfile = profile;
+    const gl = guest.data.profile;
+    $('mgLocal').innerHTML = summaryHtml({ level: gl.level, total: guest.totalXp(), unlocks: unlockNames(D.unlocksForLevel(gl.level)), completed: guest.data.completed,
+      extra: `<p class="hint">賽道紀錄 ${Object.keys(guest.data.records).length} 筆${guest.data.legacy ? '、舊版霓虹市區 ' + fmt(guest.data.legacy.time) : ''}（一律保留在此裝置）</p>` });
+    $('mgCloud').innerHTML = summaryHtml({ level: profile.level, total: profile.totalXp, unlocks: unlockNames(profile.unlocks), completed: profile.completed,
+      extra: profile.totalXp === 0 ? '<p class="hint">這是新帳號，雲端還沒有進度</p>' : '' });
+    $('mgUser').textContent = `${profile.nickname}（${profile.username}）`;
+    const merged = Math.max(guest.totalXp(), profile.totalXp);
+    $('mgMerge').textContent = `合併本機進度到帳號（合併後 Lv ${D.levelFromTotal(merged).level}）`;
+    $('mgErr').textContent = '';
+    show('scrMerge');
+  }
+  $('mgMerge').addEventListener('click', async () => {
+    const p = mergeProfile; if (!p) return;
+    $('mgMerge').disabled = true;
+    try {
+      let profile;
+      try { profile = (await Acc.importLocal(guest)).profile; }
+      catch (e) { if (e.error === 'ALREADY_IMPORTED' && e.profile) profile = e.profile; else throw e; }
+      guest.data.linked[p.id] = 'merged'; guest.persist();
+      activate(profile); show('scrMenu'); toast(`已合併：帳號目前 Lv ${profile.level}`);
+    } catch (e) {
+      $('mgErr').textContent = e.network ? '無法連到伺服器，請稍後再試（尚未做任何變更）' : (e.msg || '合併失敗');
+    } finally { $('mgMerge').disabled = false; }
+  });
+  $('mgCloudOnly').addEventListener('click', () => {
+    const p = mergeProfile; if (!p) return;
+    guest.data.linked[p.id] = 'cloud'; guest.persist();
+    activate(p); show('scrMenu'); toast(`已登入：${p.nickname}（使用雲端進度，訪客進度保留在此裝置）`);
+  });
+
+  $('acNickSave').addEventListener('click', async () => {
+    const n = $('acNick').value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 12);
+    if (!n) { $('auErr').textContent = '暱稱不能空白'; return; }
+    try { const r = await Acc.setNickname(n); save.applyCloud(r.profile); toast('暱稱已更新'); renderAccount(); renderAcctBar(); }
+    catch (e) { $('auErr').textContent = e.network ? '離線中，無法更新暱稱' : (e.msg || '更新失敗'); }
+  });
+  $('acSyncNow').addEventListener('click', () => { Acc.sync(save).catch(() => {}).then(() => { renderAccount(); if (save !== guest) save.fixCosmetics(); }); });
+  $('acLogout').addEventListener('click', async () => {
+    await Acc.logout(); useSave(guest); show('scrMenu'); toast('已登出，現在使用此裝置的訪客進度');
+  });
+
+  /** 啟動與回到前景時同步；離線時沿用上次同步的快取 */
+  async function initAccount() {
+    renderAcctBar();
+    if (!Acc.loggedIn) return;
+    const id = Acc.session.accountId;
+    const needDecision = guest.hasProgress() && !guest.data.linked[id];
+    const cached = accountSave(id);
+    if (!needDecision && cached.data.cloud) { Acc.status = 'syncing'; useSave(cached); }
+    try {
+      if (needDecision || !cached.data.cloud) {
+        Acc.status = 'syncing'; renderAcctBar();
+        const { profile } = await Acc.fetchMe();
+        if (needDecision) { if (!G) showMerge(profile); } else activate(profile);
+      } else {
+        await Acc.sync(save);
+        save.fixCosmetics();
+      }
+    } catch (e) {
+      if (e && e.status === 401) { await Acc.logout(); toast('登入已失效，請重新登入'); }
+      else { Acc.status = 'offline'; Acc.detail = save === guest ? '無法連到伺服器，暫時使用訪客進度' : '顯示上次同步的資料，連線後自動重試'; }
+    }
+    renderAcctBar(); if (screen === 'scrMenu') renderMenu();
+  }
+  let lastAutoSync = 0;
+  function autoSync() {
+    if (!Acc.loggedIn || save === guest || (G && !G.ended) || Date.now() - lastAutoSync < 20000) return;
+    lastAutoSync = Date.now();
+    Acc.sync(save).then(() => { save.fixCosmetics(); if (screen === 'scrMenu') renderMenu(); }).catch(() => {});
+  }
+  addEventListener('online', () => { lastAutoSync = 0; if (save === guest) initAccount(); else autoSync(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) autoSync(); });
 
   /* ================= PWA：安裝、更新、APK ================= */
   let deferredInstall = null, swReg = null, updateReady = false, userRequestedUpdate = false;
@@ -842,8 +1067,9 @@
     }
   });
   newDemo();
+  initAccount();
   requestAnimationFrame(frame);
 
   // 測試用：暴露少量狀態（不影響遊戲）
-  NND.app = { get game() { return G; }, save, get net() { return net; }, show };
+  NND.app = { get game() { return G; }, get save() { return save; }, guest, get net() { return net; }, show };
 })();

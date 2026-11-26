@@ -72,6 +72,11 @@
 <section id="scrMenu" class="screen">
   <h1>霓虹夜行</h1>
   <div class="sub">NEON NIGHT DRIVE</div>
+  <div id="acctBar" class="acctbar">
+    <span id="acctWho"></span>
+    <span id="acctSync" class="sync guest"></span>
+    <button id="acctBtn" class="small">登入／註冊</button>
+  </div>
   <div id="menuLevel" class="levelbar"></div>
   <div class="menu-grid">
     <button data-go="tt" class="primary">計時挑戰<small>單人三圈・幽靈車</small></button>
@@ -87,7 +92,7 @@
     <a id="apkBtn" class="btnlink small hidden" href="#" download>下載 Android App（APK）</a>
     <button id="updateBtn" class="small warn hidden">有新版本，點此更新</button>
   </div>
-  <p class="scope">進度只保存在<b>這個瀏覽器</b>（此裝置、此網址）。清除網站資料、換瀏覽器或換裝置都不會帶過去；Android App 與瀏覽器的進度彼此獨立。</p>
+  <p class="scope" id="scopeTxt"></p>
   <p class="ver" id="verTxt"></p>
 </section>
 
@@ -217,6 +222,56 @@
   <div class="row center"><button class="back" data-go="menu">返回</button><button id="resetSave" class="small warn">清除本機進度</button></div>
 </section>
 
+<!-- ============ 車手帳號 ============ -->
+<section id="scrAccount" class="screen hidden">
+  <h2>車手帳號</h2>
+  <div id="acctGuest">
+    <p class="hint">登入後，暱稱、經驗值、等級與解鎖項目會存到雲端，換手機或電腦登入同一帳號都能接著玩。<br>不登入也能以訪客身分遊玩與加入多人房間，進度儲存在此裝置。</p>
+    <div class="row center tabs">
+      <button id="tabLogin" class="small sel">登入</button>
+      <button id="tabReg" class="small">註冊</button>
+    </div>
+    <form id="authForm" class="opts col authform" autocomplete="on">
+      <label>帳號 <input id="auUser" name="username" autocomplete="username" maxlength="20" placeholder="3～20 個英文、數字或底線" required></label>
+      <label>密碼 <input id="auPass" name="password" type="password" autocomplete="current-password" maxlength="72" placeholder="至少 8 個字元" required></label>
+      <label id="auNickRow" class="hidden">車手暱稱 <input id="auNick" maxlength="12" placeholder="最多 12 字，可與別人重複"></label>
+      <button id="auSubmit" class="primary" type="submit">登入</button>
+    </form>
+    <p class="hint">帳號名稱用來登入，不能重複；車手暱稱顯示在比賽中，可以和別人相同。</p>
+  </div>
+  <div id="acctUser" class="hidden">
+    <div class="acctcard">
+      <div>車手暱稱 <input id="acNick" maxlength="12"> <button id="acNickSave" class="small">儲存</button></div>
+      <div>登入帳號：<b id="acUser"></b></div>
+      <div class="hint">玩家帳號 ID：<code id="acId"></code></div>
+      <div id="acLevel" class="levelbar wide"></div>
+      <div id="acUnlocks" class="hint"></div>
+      <div>同步狀態：<span id="acSync" class="sync"></span></div>
+    </div>
+    <p class="hint">雲端保存：暱稱、總經驗值、等級、已解鎖項目、已完成地圖。賽道最佳紀錄、幽靈車、設定與車庫搭配仍儲存在此裝置。</p>
+    <div class="row center"><button id="acSyncNow" class="small">立即同步</button><button id="acLogout" class="small warn">登出</button></div>
+  </div>
+  <p id="auErr" class="err"></p>
+  <div class="row center"><button class="back" data-go="menu">返回</button></div>
+</section>
+
+<!-- ============ 首次登入：比較本機與雲端進度 ============ -->
+<section id="scrMerge" class="screen hidden">
+  <h2>此裝置有訪客進度</h2>
+  <p class="hint">請先確認兩邊的進度，再選擇要如何保留。<b>無論選哪一個，此裝置的訪客存檔都不會被刪除</b>，登出後仍然可以使用。</p>
+  <div class="mergegrid">
+    <div class="mergecol"><h3>此裝置（訪客）</h3><div id="mgLocal"></div></div>
+    <div class="mergecol"><h3>雲端帳號 <small id="mgUser"></small></h3><div id="mgCloud"></div></div>
+  </div>
+  <div class="row center col">
+    <button id="mgMerge" class="primary">合併本機進度到帳號</button>
+    <small class="hint">經驗值取兩邊較高者、已完成地圖取聯集。不會把兩邊相加，也不會降低雲端進度。</small>
+    <button id="mgCloudOnly">只使用雲端進度</button>
+    <small class="hint">帳號維持雲端現況；此裝置的訪客進度原封不動保留。</small>
+  </div>
+  <p id="mgErr" class="err"></p>
+</section>
+
 <!-- ============ 說明 ============ -->
 <section id="scrHelp" class="screen hidden">
   <h2>操作說明</h2>
@@ -257,6 +312,7 @@
 <script src="js/input.js"></script>
 <script src="js/render.js"></script>
 <script src="js/net.js"></script>
+<script src="js/account.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

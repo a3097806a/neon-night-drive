@@ -8,7 +8,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const GAME_VERSION = '2.0.0';
+  const GAME_VERSION = '2.1.0';
   /** 規則版本：影響計時成績的物理或計圈規則改變時要遞增，成績依此分開保存 */
   const RULES_VERSION = 2;
   const SIM_DT = 1 / 60;
@@ -181,6 +181,28 @@
   const PRESET_SLOTS = [{ level: 1 }, { level: 5 }, { level: 10 }];
   const MAX_LEVEL = 20;
 
+  /** 總經驗值 → { level, xp（目前等級內的經驗）}；本機存檔與雲端帳號共用同一套換算 */
+  function levelFromTotal(total) {
+    let level = 1, xp = Math.max(0, Math.floor(total || 0));
+    while (level < MAX_LEVEL && xp >= xpForLevel(level)) { xp -= xpForLevel(level); level++; }
+    return { level, xp };
+  }
+  function totalFromLevel(level, xp) {
+    let t = Math.max(0, Math.floor(xp || 0));
+    for (let l = 1; l < Math.min(level || 1, MAX_LEVEL); l++) t += xpForLevel(l);
+    return t;
+  }
+  /** 某等級已解鎖的項目，格式 "種類:ID"（例如 "paint:sunset"、"preset:1"） */
+  function unlocksForLevel(level) {
+    const out = [];
+    for (const [kind, list] of Object.entries(COSMETICS)) for (const c of list) if (c.level <= level) out.push(kind + ':' + c.id);
+    PRESET_SLOTS.forEach((p, i) => { if (p.level <= level) out.push('preset:' + i); });
+    return out;
+  }
+  /** 正式名額上限：任何單場比賽可得經驗的理論上限（伺服器用來檢查單機回報） */
+  const MAX_RACE_XP = XP.finish + XP.podiumBonus[0] + XP.perPositionAhead * 7 + XP.newRecord + XP.firstMap;
+
   return { GAME_VERSION, RULES_VERSION, SIM_DT, KMH, TRACKS, TRACK_ORDER, CARS, CAR_ORDER,
-    SKILLS, SKILL_ORDER, ENERGY, RULES, DIFFICULTY, COSMETICS, XP, xpForLevel, PRESET_SLOTS, MAX_LEVEL };
+    SKILLS, SKILL_ORDER, ENERGY, RULES, DIFFICULTY, COSMETICS, XP, xpForLevel, PRESET_SLOTS, MAX_LEVEL,
+    levelFromTotal, totalFromLevel, unlocksForLevel, MAX_RACE_XP };
 });

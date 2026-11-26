@@ -1,11 +1,11 @@
 /* 霓虹夜行 Service Worker：離線快取 App 外殼，支援單機離線遊玩。
  * 發布新版時修改 VERSION；新版會等玩家在選單或結算畫面按「更新」才啟用，不會打斷比賽。 */
-const VERSION = '2.0.0-1';
+const VERSION = '2.1.0-1';
 const CACHE = 'nnd-' + VERSION;
 const SHELL = [
   './', './index.html', './css/style.css', './config.js', './manifest.webmanifest',
   './shared/data.js', './shared/track.js', './shared/physics.js', './shared/ai.js', './shared/sim.js', './shared/save.js',
-  './js/input.js', './js/render.js', './js/net.js', './js/main.js',
+  './js/input.js', './js/render.js', './js/net.js', './js/account.js', './js/main.js',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'
 ];
 
