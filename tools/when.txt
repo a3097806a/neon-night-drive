@@ -1,0 +1,4 @@
+log=True
+pc=True
+chrome:12
+node:1

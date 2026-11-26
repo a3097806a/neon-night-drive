@@ -1,0 +1,5 @@
+# 實測指標 {"swift":{"top":537.57,"t400":0.55,"brakeDist":111.99,"grip":1300,"wet":0.62},"mist":{"top":560.69,"t400":0.73,"brakeDist":93.31,"grip":1120,"wet":0.95},"shadow":{"top":570.74,"t400":0.82,"brakeDist":118.81,"grip":920,"wet":0.6},"redline":{"top":636.99,"t400":0.9,"brakeDist":159.46,"grip":800,"wet":0.45}}
+# 試駕彎道比較 {"swift":{"time":8.12,"maxSlip":0.133,"minSpeed":390},"mist":{"time":8.65,"maxSlip":0.123,"minSpeed":338},"shadow":{"time":9.02,"maxSlip":0.465,"minSpeed":333},"redline":{"time":9.23,"maxSlip":0.313,"minSpeed":276}}
+# tests 38
+# pass 38
+# fail 0

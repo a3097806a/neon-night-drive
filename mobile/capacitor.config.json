@@ -1,0 +1,11 @@
+{
+  "appId": "tw.neonnightdrive.app",
+  "appName": "霓虹夜行",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#05030d"
+  }
+}

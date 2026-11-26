@@ -1,0 +1,21 @@
+{
+  "name": "neon-night-drive-android",
+  "version": "2.0.0",
+  "private": true,
+  "description": "霓虹夜行 Android App 封裝（Capacitor）",
+  "scripts": {
+    "prepare-www": "node prepare-www.js",
+    "sync": "node prepare-www.js && npx cap sync android",
+    "add-android": "node prepare-www.js && npx cap add android",
+    "apk:debug": "node prepare-www.js && npx cap sync android && cd android && gradlew assembleDebug",
+    "apk:release": "node prepare-www.js && npx cap sync android && cd android && gradlew assembleRelease",
+    "publish-apk": "node publish-apk.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+
+added 93 packages in 34s
+已準備 www（伺服器：https://example.invalid）
+√ Adding native android project in android in 321.01ms
+√ add in 321.59ms
+√ Copying web assets from www to android\app\src\main\assets\public in 28.49ms
+√ Creating capacitor.config.json in android\app\src\main\assets in 1.20ms
+√ copy android in 42.73ms
+√ Updating Android plugins in 1.66ms
+√ update android in 41.49ms
+√ Syncing Gradle in 521.80μs
+[success] android platform added!
+Follow the Developer Workflow guide to get building:
+https://capacitorjs.com/docs/basics/workflow
+DONE 
+��T: �䤣�촣�ѼҦ����ɮסC

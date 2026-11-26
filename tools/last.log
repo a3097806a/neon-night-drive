@@ -1,0 +1,240 @@
+TAP version 13
+# 實測指標 {"swift":{"top":537.57,"t400":0.55,"brakeDist":111.99,"grip":1300,"wet":0.62},"mist":{"top":560.69,"t400":0.73,"brakeDist":93.31,"grip":1120,"wet":0.95},"shadow":{"top":570.74,"t400":0.82,"brakeDist":118.81,"grip":920,"wet":0.6},"redline":{"top":636.99,"t400":0.9,"brakeDist":159.46,"grip":800,"wet":0.45}}
+# 試駕彎道比較 {"swift":{"time":8.12,"maxSlip":0.133,"minSpeed":390},"mist":{"time":8.65,"maxSlip":0.123,"minSpeed":338},"shadow":{"time":9.02,"maxSlip":0.465,"minSpeed":333},"redline":{"time":9.23,"maxSlip":0.313,"minSpeed":276}}
+# Subtest: 四張賽道（與試駕彎道）不會自我重疊
+ok 1 - 四張賽道（與試駕彎道）不會自我重疊
+  ---
+  duration_ms: 163.3778
+  type: 'test'
+  ...
+# Subtest: 霓虹市區：沿中心線正向跑三圈恰好計三圈並完賽
+ok 2 - 霓虹市區：沿中心線正向跑三圈恰好計三圈並完賽
+  ---
+  duration_ms: 7.7917
+  type: 'test'
+  ...
+# Subtest: 霓虹市區：逆向行駛三圈不計圈
+ok 3 - 霓虹市區：逆向行駛三圈不計圈
+  ---
+  duration_ms: 2.8947
+  type: 'test'
+  ...
+# Subtest: 霓虹市區：在起點線來回 30 次不計圈
+ok 4 - 霓虹市區：在起點線來回 30 次不計圈
+  ---
+  duration_ms: 2.9049
+  type: 'test'
+  ...
+# Subtest: 霓虹市區：從草地繞過檢查線不計圈
+ok 5 - 霓虹市區：從草地繞過檢查線不計圈
+  ---
+  duration_ms: 1.8848
+  type: 'test'
+  ...
+# Subtest: 高雄港灣雨夜：沿中心線正向跑三圈恰好計三圈並完賽
+ok 6 - 高雄港灣雨夜：沿中心線正向跑三圈恰好計三圈並完賽
+  ---
+  duration_ms: 2.5096
+  type: 'test'
+  ...
+# Subtest: 高雄港灣雨夜：逆向行駛三圈不計圈
+ok 7 - 高雄港灣雨夜：逆向行駛三圈不計圈
+  ---
+  duration_ms: 4.4625
+  type: 'test'
+  ...
+# Subtest: 高雄港灣雨夜：在起點線來回 30 次不計圈
+ok 8 - 高雄港灣雨夜：在起點線來回 30 次不計圈
+  ---
+  duration_ms: 2.4168
+  type: 'test'
+  ...
+# Subtest: 高雄港灣雨夜：從草地繞過檢查線不計圈
+ok 9 - 高雄港灣雨夜：從草地繞過檢查線不計圈
+  ---
+  duration_ms: 2.1118
+  type: 'test'
+  ...
+# Subtest: 山城曙光：沿中心線正向跑三圈恰好計三圈並完賽
+ok 10 - 山城曙光：沿中心線正向跑三圈恰好計三圈並完賽
+  ---
+  duration_ms: 5.2723
+  type: 'test'
+  ...
+# Subtest: 山城曙光：逆向行駛三圈不計圈
+ok 11 - 山城曙光：逆向行駛三圈不計圈
+  ---
+  duration_ms: 1.9917
+  type: 'test'
+  ...
+# Subtest: 山城曙光：在起點線來回 30 次不計圈
+ok 12 - 山城曙光：在起點線來回 30 次不計圈
+  ---
+  duration_ms: 0.9453
+  type: 'test'
+  ...
+# Subtest: 山城曙光：從草地繞過檢查線不計圈
+ok 13 - 山城曙光：從草地繞過檢查線不計圈
+  ---
+  duration_ms: 0.6821
+  type: 'test'
+  ...
+# Subtest: 未來工業環線：沿中心線正向跑三圈恰好計三圈並完賽
+ok 14 - 未來工業環線：沿中心線正向跑三圈恰好計三圈並完賽
+  ---
+  duration_ms: 1.5217
+  type: 'test'
+  ...
+# Subtest: 未來工業環線：逆向行駛三圈不計圈
+ok 15 - 未來工業環線：逆向行駛三圈不計圈
+  ---
+  duration_ms: 1.6868
+  type: 'test'
+  ...
+# Subtest: 未來工業環線：在起點線來回 30 次不計圈
+ok 16 - 未來工業環線：在起點線來回 30 次不計圈
+  ---
+  duration_ms: 0.8081
+  type: 'test'
+  ...
+# Subtest: 未來工業環線：從草地繞過檢查線不計圈
+ok 17 - 未來工業環線：從草地繞過檢查線不計圈
+  ---
+  duration_ms: 0.5367
+  type: 'test'
+  ...
+# Subtest: 高雄港灣：直線切過髮夾彎（草地捷徑）不計圈
+ok 18 - 高雄港灣：直線切過髮夾彎（草地捷徑）不計圈
+  ---
+  duration_ms: 1.1131
+  type: 'test'
+  ...
+# Subtest: 霓虹市區：四台車由 AI（困難）以實際物理完成三圈
+ok 19 - 霓虹市區：四台車由 AI（困難）以實際物理完成三圈
+  ---
+  duration_ms: 149.9482
+  type: 'test'
+  ...
+# Subtest: 高雄港灣雨夜：四台車由 AI（困難）以實際物理完成三圈
+ok 20 - 高雄港灣雨夜：四台車由 AI（困難）以實際物理完成三圈
+  ---
+  duration_ms: 76.0766
+  type: 'test'
+  ...
+# Subtest: 山城曙光：四台車由 AI（困難）以實際物理完成三圈
+ok 21 - 山城曙光：四台車由 AI（困難）以實際物理完成三圈
+  ---
+  duration_ms: 62.4249
+  type: 'test'
+  ...
+# Subtest: 未來工業環線：四台車由 AI（困難）以實際物理完成三圈
+ok 22 - 未來工業環線：四台車由 AI（困難）以實際物理完成三圈
+  ---
+  duration_ms: 76.0857
+  type: 'test'
+  ...
+# Subtest: 完賽後成績鎖定，不再產生圈數事件
+ok 23 - 完賽後成績鎖定，不再產生圈數事件
+  ---
+  duration_ms: 152.3774
+  type: 'test'
+  ...
+# Subtest: 倒數結束前車輛不會移動、計時不會開始
+ok 24 - 倒數結束前車輛不會移動、計時不會開始
+  ---
+  duration_ms: 0.7112
+  type: 'test'
+  ...
+# Subtest: 四台車的實測指標彼此不同且符合定位
+ok 25 - 四台車的實測指標彼此不同且符合定位
+  ---
+  duration_ms: 29.7667
+  type: 'test'
+  ...
+# Subtest: 同一試駕彎道，四台車的過彎表現不同
+ok 26 - 同一試駕彎道，四台車的過彎表現不同
+  ---
+  duration_ms: 13.8978
+  type: 'test'
+  ...
+# Subtest: 原地打轉無法取得能量；受控過彎可以蓄能
+ok 27 - 原地打轉無法取得能量；受控過彎可以蓄能
+  ---
+  duration_ms: 31.2759
+  type: 'test'
+  ...
+# Subtest: 技能：消耗、冷卻、能量不足時失敗
+ok 28 - 技能：消耗、冷卻、能量不足時失敗
+  ---
+  duration_ms: 0.4933
+  type: 'test'
+  ...
+# Subtest: 原版 neonNightDriveBest 歸入「舊版霓虹市區」，且原始鍵保留
+ok 29 - 原版 neonNightDriveBest 歸入「舊版霓虹市區」，且原始鍵保留
+  ---
+  duration_ms: 2.1248
+  type: 'test'
+  ...
+# Subtest: 沒有舊紀錄時不會產生假紀錄
+ok 30 - 沒有舊紀錄時不會產生假紀錄
+  ---
+  duration_ms: 0.279
+  type: 'test'
+  ...
+# Subtest: 同一場比賽只發一次經驗值；重新開啟後等級、解鎖、紀錄仍存在
+ok 31 - 同一場比賽只發一次經驗值；重新開啟後等級、解鎖、紀錄仍存在
+  ---
+  duration_ms: 2.4417
+  type: 'test'
+  ...
+# Subtest: 等級解鎖技能配置欄
+ok 32 - 等級解鎖技能配置欄
+  ---
+  duration_ms: 0.6783
+  type: 'test'
+  ...
+# Subtest: 損毀的存檔可以恢復成預設值
+ok 33 - 損毀的存檔可以恢復成預設值
+  ---
+  duration_ms: 0.3761
+  type: 'test'
+  ...
+# Subtest: 健康檢查與 API 資訊；未產生 APK 時不提供下載
+ok 34 - 健康檢查與 API 資訊；未產生 APK 時不提供下載
+  ---
+  duration_ms: 32.6357
+  type: 'test'
+  ...
+# Subtest: 房號錯誤有明確提示
+ok 35 - 房號錯誤有明確提示
+  ---
+  duration_ms: 18.0472
+  type: 'test'
+  ...
+# Subtest: 8 人同場即時比賽、第 9 人房滿、比賽中禁止加入、結算只送一次
+ok 36 - 8 人同場即時比賽、第 9 人房滿、比賽中禁止加入、結算只送一次
+  ---
+  duration_ms: 20287.2686
+  type: 'test'
+  ...
+# Subtest: 斷線重連回到原車位、不複製車輛；重複封包被忽略；逾時標記未完賽
+ok 37 - 斷線重連回到原車位、不複製車輛；重複封包被忽略；逾時標記未完賽
+  ---
+  duration_ms: 6077.5616
+  type: 'test'
+  ...
+# Subtest: 房主離開時移交房主，其他人可以繼續開賽
+ok 38 - 房主離開時移交房主，其他人可以繼續開賽
+  ---
+  duration_ms: 15.6338
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74496.9064
