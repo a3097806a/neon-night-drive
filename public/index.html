@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05030d">
+<meta name="description" content="霓虹夜行：2D 俯視角霓虹街機賽車，支援單機、AI 與最多 8 人即時連線">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="霓虹夜行">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>霓虹夜行 Neon Night Drive</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- ============ 比賽 HUD ============ -->
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="col">
+      <div class="box"><small>圈數</small><b id="hLap">1 / 3</b></div>
+      <div class="box"><small>本圈</small><b id="hLapT">0:00.00</b></div>
+      <div class="box" id="hPosBox"><small>名次</small><b id="hPos">1 / 1</b></div>
+    </div>
+    <div class="col">
+      <div class="box"><small>總時間</small><b id="hTotal">0:00.00</b></div>
+      <div class="box pink"><small>最佳紀錄</small><b id="hBest">--:--.--</b></div>
+      <button class="icon-btn" id="pauseBtn" aria-label="暫停／選單">❚❚</button>
+    </div>
+  </div>
+  <ol id="board" class="board"></ol>
+  <canvas id="minimap" width="180" height="140" aria-label="小地圖"></canvas>
+  <div id="skillBar">
+    <div class="energy"><div id="energyFill"></div><span id="energyTxt">能量 30</span></div>
+    <div class="skills">
+      <div class="skill" id="sk1"><i></i><b></b><small>Q</small><span class="cd"></span></div>
+      <div class="skill" id="sk2"><i></i><b></b><small>E</small><span class="cd"></span></div>
+    </div>
+  </div>
+  <div id="speedo"><b id="hSpeed">0</b><small>km/h</small></div>
+  <div id="cd" class="hidden"></div>
+  <div id="msg" class="hidden"></div>
+  <div id="sig" class="hidden"></div>
+  <div id="tip" class="hidden"></div>
+  <div id="warn" class="hidden"></div>
+  <div id="netBadge" class="hidden"></div>
+  <div id="testPanel" class="hidden">
+    <div class="tp-title">試駕：按 <kbd>1</kbd>–<kbd>4</kbd> 或點選換車，回到同一段彎道</div>
+    <div id="testCars" class="tp-cars"></div>
+    <table id="testTimes"></table>
+    <button id="testExit">結束試駕</button>
+  </div>
+</div>
+
+<!-- ============ 觸控操作（手機橫向） ============ -->
+<div id="touch" class="hidden">
+  <div id="steerPad" aria-label="方向"><div class="pad-hint">◀ 滑動轉向 ▶</div><div id="steerKnob"></div></div>
+  <div class="tright">
+    <button class="tbtn skill-btn" data-act="s1" id="tS1">技能1</button>
+    <button class="tbtn skill-btn" data-act="s2" id="tS2">技能2</button>
+    <button class="tbtn" data-act="brake" id="tBrake">煞車</button>
+    <button class="tbtn big" data-act="throttle" id="tGas">油門</button>
+  </div>
+</div>
+<div id="rotate" class="hidden"><div>📱↻</div><p>請將手機轉為橫向遊玩</p></div>
+
+<!-- ============ 主選單 ============ -->
+<section id="scrMenu" class="screen">
+  <h1>霓虹夜行</h1>
+  <div class="sub">NEON NIGHT DRIVE</div>
+  <div id="menuLevel" class="levelbar"></div>
+  <div class="menu-grid">
+    <button data-go="tt" class="primary">計時挑戰<small>單人三圈・幽靈車</small></button>
+    <button data-go="arcade">街機競速<small>對戰最多 7 台 AI</small></button>
+    <button data-go="mp">多人連線<small>最多 8 人・房間碼</small></button>
+    <button data-go="garage">車庫<small>選車・技能・外觀・試駕</small></button>
+    <button data-go="help">操作說明<small>鍵盤・手機・安裝</small></button>
+    <button data-go="settings">設定<small>自動油門・畫質</small></button>
+  </div>
+  <div id="legacyNote" class="note hidden"></div>
+  <div class="row center">
+    <button id="installBtn" class="small hidden">安裝 App</button>
+    <a id="apkBtn" class="btnlink small hidden" href="#" download>下載 Android App（APK）</a>
+    <button id="updateBtn" class="small warn hidden">有新版本，點此更新</button>
+  </div>
+  <p class="scope">進度只保存在<b>這個瀏覽器</b>（此裝置、此網址）。清除網站資料、換瀏覽器或換裝置都不會帶過去；Android App 與瀏覽器的進度彼此獨立。</p>
+  <p class="ver" id="verTxt"></p>
+</section>
+
+<!-- ============ 賽道選擇 ============ -->
+<section id="scrTracks" class="screen hidden">
+  <h2 id="tracksTitle">選擇賽道</h2>
+  <div id="trackList" class="cards"></div>
+  <div id="arcadeOpts" class="opts hidden">
+    <label>AI 數量 <select id="optAi"><option>1</option><option>3</option><option>5</option><option selected>7</option></select></label>
+    <label>難度 <select id="optDiff"><option value="easy">簡單</option><option value="normal" selected>普通</option><option value="hard">困難</option></select></label>
+    <label><input type="checkbox" id="optSkills" checked> 開放技能</label>
+  </div>
+  <div id="ttOpts" class="opts hidden">
+    <label><input type="checkbox" id="optGhost" checked> 顯示最佳幽靈車</label>
+    <label><input type="checkbox" id="optTtSkills" checked> 開放技能</label>
+  </div>
+  <p class="hint">目前車款：<b id="curCarTxt"></b>（到車庫更換）</p>
+  <div class="row center"><button class="back" data-go="menu">返回</button><button id="goRace" class="primary">出發</button></div>
+</section>
+
+<!-- ============ 車庫 ============ -->
+<section id="scrGarage" class="screen hidden">
+  <h2>車庫</h2>
+  <div id="garageLevel" class="levelbar wide"></div>
+  <div class="garage">
+    <div id="carList" class="cars"></div>
+    <div class="garage-side">
+      <h3>技能配置（從三種技能選兩種）</h3>
+      <div id="presetList"></div>
+      <h3>外觀搭配</h3>
+      <div id="cosList"></div>
+    </div>
+  </div>
+  <div class="row center"><button class="back" data-go="menu">返回</button><button id="testDriveBtn">試駕（同一段彎道比較）</button></div>
+</section>
+
+<!-- ============ 多人：入口 ============ -->
+<section id="scrMp" class="screen hidden">
+  <h2>多人連線</h2>
+  <div id="mpStatus" class="status"></div>
+  <label class="field">暱稱 <input id="nick" maxlength="12" placeholder="最多 12 字" autocomplete="nickname"></label>
+  <div class="row center">
+    <button id="mpCreate" class="primary">建立房間</button>
+  </div>
+  <div class="row center">
+    <input id="roomCode" maxlength="4" placeholder="房號（4 碼）" autocapitalize="characters" autocomplete="off">
+    <button id="mpJoin">加入房間</button>
+  </div>
+  <p id="mpErr" class="err"></p>
+  <p class="hint">建立房間後把邀請連結傳給朋友。對方用手機行動網路或不同 Wi-Fi 也能透過公開網址加入。</p>
+  <div class="row center"><button class="back" data-go="menu">返回</button></div>
+</section>
+
+<!-- ============ 多人：房間 ============ -->
+<section id="scrLobby" class="screen hidden">
+  <h2>房間 <span id="lbCode" class="code"></span> <small id="lbCount"></small></h2>
+  <div class="row center invite">
+    <input id="lbLink" readonly aria-label="邀請連結">
+    <button id="lbCopy" class="small">複製邀請連結</button>
+  </div>
+  <div class="lobby">
+    <div>
+      <h3>車手</h3>
+      <ol id="lbPlayers" class="players"></ol>
+    </div>
+    <div>
+      <h3>比賽規則 <small id="lbHostNote"></small></h3>
+      <div class="opts col">
+        <label>地圖 <select id="lbTrack"></select></label>
+        <label>圈數 <select id="lbLaps"></select></label>
+        <label><input type="checkbox" id="lbSkills"> 開放技能</label>
+        <label><input type="checkbox" id="lbAi"> 以 AI 補滿 8 台</label>
+        <label>AI 難度 <select id="lbAiDiff"><option value="easy">簡單</option><option value="normal">普通</option><option value="hard">困難</option></select></label>
+      </div>
+      <p id="lbRules" class="rules"></p>
+      <h3>我的車</h3>
+      <div class="opts col">
+        <label>車款 <select id="lbCar"></select></label>
+        <label>技能 1 <select id="lbSk1"></select></label>
+        <label>技能 2 <select id="lbSk2"></select></label>
+      </div>
+    </div>
+  </div>
+  <p id="lbErr" class="err"></p>
+  <div class="row center">
+    <button id="lbLeave" class="back">離開房間</button>
+    <button id="lbReady">準備</button>
+    <button id="lbStart" class="primary hidden">開始比賽</button>
+  </div>
+</section>
+
+<!-- ============ 結算 ============ -->
+<section id="scrResults" class="screen hidden">
+  <h2 id="resTitle">完賽！</h2>
+  <div class="big" id="resTime"></div>
+  <div id="resNew" class="nb hidden">★ 新紀錄！</div>
+  <table id="resTable" class="restable"></table>
+  <div id="resLaps" class="laps"></div>
+  <div id="resXp" class="xp"></div>
+  <div class="row center">
+    <button id="resMenu" class="back">返回選單</button>
+    <button id="resAgain" class="primary">重新開始</button>
+  </div>
+  <p id="resWait" class="hint hidden"></p>
+</section>
+
+<!-- ============ 暫停 ============ -->
+<section id="scrPause" class="screen dim hidden">
+  <h2>暫停</h2>
+  <p id="pauseNote" class="hint"></p>
+  <div class="row center col">
+    <button id="pResume" class="primary">繼續</button>
+    <button id="pRestart">重新開始</button>
+    <button id="pQuit" class="back">離開比賽</button>
+  </div>
+</section>
+
+<!-- ============ 設定 ============ -->
+<section id="scrSettings" class="screen hidden">
+  <h2>設定</h2>
+  <div class="opts col">
+    <label><input type="checkbox" id="setAuto"> 自動油門（不按煞車時自動加速，手機推薦）</label>
+    <label><input type="checkbox" id="setTouch"> 強制顯示觸控按鈕</label>
+    <label>畫質 <select id="setQuality"><option value="auto">自動</option><option value="high">高</option><option value="low">省電</option></select></label>
+  </div>
+  <p class="scope">存檔版本 v<span id="saveVer"></span>，保存範圍：這個瀏覽器的此網址。</p>
+  <div class="row center"><button class="back" data-go="menu">返回</button><button id="resetSave" class="small warn">清除本機進度</button></div>
+</section>
+
+<!-- ============ 說明 ============ -->
+<section id="scrHelp" class="screen hidden">
+  <h2>操作說明</h2>
+  <div class="help">
+    <div><h3>鍵盤</h3>
+      <p><kbd>↑</kbd>/<kbd>W</kbd> 油門　<kbd>↓</kbd>/<kbd>S</kbd> 煞車（停下後倒車）</p>
+      <p><kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> 轉向（可同時按油門）</p>
+      <p><kbd>Q</kbd> 技能 1　<kbd>E</kbd> 技能 2　<kbd>P</kbd>/<kbd>Esc</kbd> 暫停　<kbd>R</kbd> 重新開始（僅單機）</p>
+    </div>
+    <div><h3>手機（橫向）</h3>
+      <p>左手：在左半邊按住左右滑動轉向。</p>
+      <p>右手：油門、煞車、技能 1、技能 2，可多指同時按。</p>
+      <p>可在設定開啟「自動油門」。</p>
+    </div>
+    <div><h3>規則</h3>
+      <p>依序由正向穿越所有檢查線與終點線才算一圈。逆向、在起點來回或從草地繞過都不計圈。</p>
+      <p>能量：乾淨過彎或受控甩尾（沿賽道前進）可蓄能，原地打轉無效。</p>
+      <p>氮氣加速、抓地強化、電能回充各有消耗與冷卻。</p>
+    </div>
+    <div><h3>安裝到手機</h3>
+      <p><b>Android（Chrome）</b>：選單「⋮」→「安裝應用程式」或「加到主畫面」。</p>
+      <p><b>iPhone（Safari）</b>：分享按鈕「□↑」→「加入主畫面」→「新增」。</p>
+      <p>安裝後可離線遊玩單機模式；多人需要網路。</p>
+    </div>
+  </div>
+  <div class="row center"><button class="back" data-go="menu">返回</button></div>
+</section>
+
+<div id="toast" class="hidden"></div>
+
+<script src="config.js"></script>
+<script src="shared/data.js"></script>
+<script src="shared/track.js"></script>
+<script src="shared/physics.js"></script>
+<script src="shared/ai.js"></script>
+<script src="shared/sim.js"></script>
+<script src="shared/save.js"></script>
+<script src="js/input.js"></script>
+<script src="js/render.js"></script>
+<script src="js/net.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

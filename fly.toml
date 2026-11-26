@@ -1,0 +1,28 @@
+# Fly.io 部署設定（使用 Dockerfile；Fly 代理支援 WebSocket 並自動提供 HTTPS）
+# 首次部署：fly launch --no-deploy --copy-config，之後 fly deploy
+app = "neon-night-drive"
+primary_region = "nrt"
+
+[build]
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"   # 避免比賽中機器被停止
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  path = "/healthz"
+  timeout = "3s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

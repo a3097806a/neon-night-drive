@@ -1,0 +1,17 @@
+# Render.com 部署設定（Web Service 支援長時間 WebSocket 連線，自動提供 HTTPS／WSS）
+services:
+  - type: web
+    name: neon-night-drive
+    runtime: node
+    plan: starter            # 免費方案閒置會休眠，休眠時房間會消失；正式遊玩建議付費方案
+    buildCommand: npm install --omit=dev
+    startCommand: node server/server.js
+    healthCheckPath: /healthz
+    numInstances: 1          # 房間狀態存在記憶體中，請維持單一執行個體
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: RECONNECT_GRACE_MS
+        value: "30000"
