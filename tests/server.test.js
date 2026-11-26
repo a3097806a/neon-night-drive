@@ -13,7 +13,8 @@ const P = require('../public/shared/physics.js');
 
 let app, url;
 test.before(async () => {
-  app = await createServer({ port: 0, host: '127.0.0.1', log: () => {}, grace: 2500 });
+  const dataDir = require('fs').mkdtempSync(require('path').join(require('os').tmpdir(), 'nnd-srv-'));
+  app = await createServer({ port: 0, host: '127.0.0.1', log: () => {}, grace: 2500, dataDir });
   url = `ws://127.0.0.1:${app.port}/ws`;
 });
 test.after(async () => { await app.close(); });

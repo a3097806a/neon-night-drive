@@ -56,6 +56,26 @@ test('等級解鎖技能配置欄', () => {
   assert.strictEqual(s.presetSlots(), 3);
 });
 
+test('總經驗值與等級換算互為反函數；帳號快取與訪客存檔分開保存', () => {
+  for (const t of [0, 199, 200, 499, 500, 5400, 99999]) {
+    const { level, xp } = D.levelFromTotal(t);
+    assert.strictEqual(D.totalFromLevel(level, xp), t);
+  }
+  const st = memStorage({ neonNightDriveBest: '70' });
+  const guest = Save.create(st);
+  guest.awardXP('g1', [{ label: 'x', xp: 250 }]);
+  assert.ok(guest.hasProgress());
+  const mirror = Save.create(st, { key: Save.accountKey('acc-1'), legacy: false });
+  assert.strictEqual(mirror.data.legacy, null, '帳號快取不重複讀取舊紀錄');
+  mirror.applyCloud({ id: 'acc-1', username: 'u', nickname: '雲端車手', totalXp: 1000, completed: { city: true }, unlocks: D.unlocksForLevel(4) });
+  assert.strictEqual(mirror.level(), D.levelFromTotal(1000).level);
+  // 訪客存檔完全不受影響
+  const g2 = Save.create(st);
+  assert.strictEqual(g2.totalXp(), 250);
+  assert.strictEqual(g2.data.legacy.time, 70);
+  assert.ok(st.getItem(Save.KEY) && st.getItem(Save.accountKey('acc-1')));
+});
+
 test('損毀的存檔可以恢復成預設值', () => {
   const s = Save.create(memStorage({ 'neonNightDrive.save': '{壞掉的 JSON', neonNightDriveBest: '70' }));
   assert.strictEqual(s.data.version, Save.VERSION);

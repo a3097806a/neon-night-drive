@@ -1,19 +1,18 @@
 {
   "name": "neon-night-drive",
-  "version": "2.0.0",
-  "description": "霓虹夜行：2D 俯視角霓虹街機賽車，支援單機、AI 與最多 8 人即時連線",
+  "version": "2.1.0",
+  "description": "霓虹夜行：2D 俯視角霓虹街機賽車，支援單機、AI、最多 8 人即時連線與車手帳號雲端存檔",
   "private": true,
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "node server/server.js",
-    "test": "node --test tests/core.test.js tests/save.test.js tests/server.test.js",
+    "start": "node --disable-warning=ExperimentalWarning server/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning server/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 tests/core.test.js tests/save.test.js tests/server.test.js tests/account.test.js",
     "test:core": "node --test tests/core.test.js",
-    "icons": "node tools/make-icons.js",
-    "build:config": "node tools/write-config.js"
+    "icons": "node tools/make-icons.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   },
   "dependencies": {
     "ws": "^8.18.0"

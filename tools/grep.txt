@@ -1,0 +1,5 @@
+39: const srvLog = [];
+40: const slog = (...a) => srvLog.push(a.map(x => x && x.stack ? x.stack : String(x)).join(' '));
+41: let app = await createServer({ port: 0, host: '127.0.0.1', log: slog, dataDir });
+158: app = await createServer({ port, host: '127.0.0.1', log: slog, dataDir });
+179: fs.writeFileSync(path.join(OUT, 'account-server.log'), srvLog.join('\n') + '\n');

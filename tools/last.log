@@ -1,240 +1,288 @@
 TAP version 13
+# Subtest: 註冊、登入驗證；帳號名稱唯一、暱稱可重複
+ok 1 - 註冊、登入驗證；帳號名稱唯一、暱稱可重複
+  ---
+  duration_ms: 689.6555
+  type: 'test'
+  ...
+# Subtest: 多人比賽結束由伺服器寫入資料庫；同名玩家各自計算；訪客不寫入；重連只領一次
+ok 2 - 多人比賽結束由伺服器寫入資料庫；同名玩家各自計算；訪客不寫入；重連只領一次
+  ---
+  duration_ms: 19346.1547
+  type: 'test'
+  ...
+# Subtest: 換裝置（手機）登入同一帳號：等級、經驗值、解鎖項目相同；同名的另一位玩家只看到自己的
+ok 3 - 換裝置（手機）登入同一帳號：等級、經驗值、解鎖項目相同；同名的另一位玩家只看到自己的
+  ---
+  duration_ms: 301.7392
+  type: 'test'
+  ...
+# Subtest: 單機獎勵：伺服器依固定表格計算、同一場只領一次、不能灌經驗
+ok 4 - 單機獎勵：伺服器依固定表格計算、同一場只領一次、不能灌經驗
+  ---
+  duration_ms: 10.0256
+  type: 'test'
+  ...
+# Subtest: 首次登入合併本機進度：取較高者、地圖取聯集；同一裝置只能合併一次
+ok 5 - 首次登入合併本機進度：取較高者、地圖取聯集；同一裝置只能合併一次
+  ---
+  duration_ms: 162.5576
+  type: 'test'
+  ...
+# Subtest: 重新啟動伺服器（模擬重新部署，資料夾保留）：帳號、進度與獎勵紀錄仍在，登入憑證仍有效
+ok 6 - 重新啟動伺服器（模擬重新部署，資料夾保留）：帳號、進度與獎勵紀錄仍在，登入憑證仍有效
+  ---
+  duration_ms: 168.5483
+  type: 'test'
+  ...
+# Subtest: 登出後該登入憑證失效
+ok 7 - 登出後該登入憑證失效
+  ---
+  duration_ms: 6.8429
+  type: 'test'
+  ...
 # 實測指標 {"swift":{"top":537.57,"t400":0.55,"brakeDist":111.99,"grip":1300,"wet":0.62},"mist":{"top":560.69,"t400":0.73,"brakeDist":93.31,"grip":1120,"wet":0.95},"shadow":{"top":570.74,"t400":0.82,"brakeDist":118.81,"grip":920,"wet":0.6},"redline":{"top":636.99,"t400":0.9,"brakeDist":159.46,"grip":800,"wet":0.45}}
 # 試駕彎道比較 {"swift":{"time":8.12,"maxSlip":0.133,"minSpeed":390},"mist":{"time":8.65,"maxSlip":0.123,"minSpeed":338},"shadow":{"time":9.02,"maxSlip":0.465,"minSpeed":333},"redline":{"time":9.23,"maxSlip":0.313,"minSpeed":276}}
 # Subtest: 四張賽道（與試駕彎道）不會自我重疊
-ok 1 - 四張賽道（與試駕彎道）不會自我重疊
+ok 8 - 四張賽道（與試駕彎道）不會自我重疊
   ---
-  duration_ms: 163.3778
+  duration_ms: 169.8322
   type: 'test'
   ...
 # Subtest: 霓虹市區：沿中心線正向跑三圈恰好計三圈並完賽
-ok 2 - 霓虹市區：沿中心線正向跑三圈恰好計三圈並完賽
+ok 9 - 霓虹市區：沿中心線正向跑三圈恰好計三圈並完賽
   ---
-  duration_ms: 7.7917
+  duration_ms: 9.7919
   type: 'test'
   ...
 # Subtest: 霓虹市區：逆向行駛三圈不計圈
-ok 3 - 霓虹市區：逆向行駛三圈不計圈
+ok 10 - 霓虹市區：逆向行駛三圈不計圈
   ---
-  duration_ms: 2.8947
+  duration_ms: 4.3305
   type: 'test'
   ...
 # Subtest: 霓虹市區：在起點線來回 30 次不計圈
-ok 4 - 霓虹市區：在起點線來回 30 次不計圈
+ok 11 - 霓虹市區：在起點線來回 30 次不計圈
   ---
-  duration_ms: 2.9049
+  duration_ms: 3.5891
   type: 'test'
   ...
 # Subtest: 霓虹市區：從草地繞過檢查線不計圈
-ok 5 - 霓虹市區：從草地繞過檢查線不計圈
+ok 12 - 霓虹市區：從草地繞過檢查線不計圈
   ---
-  duration_ms: 1.8848
+  duration_ms: 4.1876
   type: 'test'
   ...
 # Subtest: 高雄港灣雨夜：沿中心線正向跑三圈恰好計三圈並完賽
-ok 6 - 高雄港灣雨夜：沿中心線正向跑三圈恰好計三圈並完賽
+ok 13 - 高雄港灣雨夜：沿中心線正向跑三圈恰好計三圈並完賽
   ---
-  duration_ms: 2.5096
+  duration_ms: 4.2204
   type: 'test'
   ...
 # Subtest: 高雄港灣雨夜：逆向行駛三圈不計圈
-ok 7 - 高雄港灣雨夜：逆向行駛三圈不計圈
+ok 14 - 高雄港灣雨夜：逆向行駛三圈不計圈
   ---
-  duration_ms: 4.4625
+  duration_ms: 2.6703
   type: 'test'
   ...
 # Subtest: 高雄港灣雨夜：在起點線來回 30 次不計圈
-ok 8 - 高雄港灣雨夜：在起點線來回 30 次不計圈
+ok 15 - 高雄港灣雨夜：在起點線來回 30 次不計圈
   ---
-  duration_ms: 2.4168
+  duration_ms: 2.7355
   type: 'test'
   ...
 # Subtest: 高雄港灣雨夜：從草地繞過檢查線不計圈
-ok 9 - 高雄港灣雨夜：從草地繞過檢查線不計圈
+ok 16 - 高雄港灣雨夜：從草地繞過檢查線不計圈
   ---
-  duration_ms: 2.1118
+  duration_ms: 1.2871
   type: 'test'
   ...
 # Subtest: 山城曙光：沿中心線正向跑三圈恰好計三圈並完賽
-ok 10 - 山城曙光：沿中心線正向跑三圈恰好計三圈並完賽
+ok 17 - 山城曙光：沿中心線正向跑三圈恰好計三圈並完賽
   ---
-  duration_ms: 5.2723
+  duration_ms: 6.3752
   type: 'test'
   ...
 # Subtest: 山城曙光：逆向行駛三圈不計圈
-ok 11 - 山城曙光：逆向行駛三圈不計圈
+ok 18 - 山城曙光：逆向行駛三圈不計圈
   ---
-  duration_ms: 1.9917
+  duration_ms: 2.1183
   type: 'test'
   ...
 # Subtest: 山城曙光：在起點線來回 30 次不計圈
-ok 12 - 山城曙光：在起點線來回 30 次不計圈
+ok 19 - 山城曙光：在起點線來回 30 次不計圈
   ---
-  duration_ms: 0.9453
+  duration_ms: 0.9132
   type: 'test'
   ...
 # Subtest: 山城曙光：從草地繞過檢查線不計圈
-ok 13 - 山城曙光：從草地繞過檢查線不計圈
+ok 20 - 山城曙光：從草地繞過檢查線不計圈
   ---
-  duration_ms: 0.6821
+  duration_ms: 0.5752
   type: 'test'
   ...
 # Subtest: 未來工業環線：沿中心線正向跑三圈恰好計三圈並完賽
-ok 14 - 未來工業環線：沿中心線正向跑三圈恰好計三圈並完賽
+ok 21 - 未來工業環線：沿中心線正向跑三圈恰好計三圈並完賽
   ---
-  duration_ms: 1.5217
+  duration_ms: 1.7688
   type: 'test'
   ...
 # Subtest: 未來工業環線：逆向行駛三圈不計圈
-ok 15 - 未來工業環線：逆向行駛三圈不計圈
+ok 22 - 未來工業環線：逆向行駛三圈不計圈
   ---
-  duration_ms: 1.6868
+  duration_ms: 2.3225
   type: 'test'
   ...
 # Subtest: 未來工業環線：在起點線來回 30 次不計圈
-ok 16 - 未來工業環線：在起點線來回 30 次不計圈
+ok 23 - 未來工業環線：在起點線來回 30 次不計圈
   ---
-  duration_ms: 0.8081
+  duration_ms: 1.0219
   type: 'test'
   ...
 # Subtest: 未來工業環線：從草地繞過檢查線不計圈
-ok 17 - 未來工業環線：從草地繞過檢查線不計圈
+ok 24 - 未來工業環線：從草地繞過檢查線不計圈
   ---
-  duration_ms: 0.5367
+  duration_ms: 0.5459
   type: 'test'
   ...
 # Subtest: 高雄港灣：直線切過髮夾彎（草地捷徑）不計圈
-ok 18 - 高雄港灣：直線切過髮夾彎（草地捷徑）不計圈
+ok 25 - 高雄港灣：直線切過髮夾彎（草地捷徑）不計圈
   ---
-  duration_ms: 1.1131
+  duration_ms: 0.7448
   type: 'test'
   ...
 # Subtest: 霓虹市區：四台車由 AI（困難）以實際物理完成三圈
-ok 19 - 霓虹市區：四台車由 AI（困難）以實際物理完成三圈
+ok 26 - 霓虹市區：四台車由 AI（困難）以實際物理完成三圈
   ---
-  duration_ms: 149.9482
+  duration_ms: 137.324
   type: 'test'
   ...
 # Subtest: 高雄港灣雨夜：四台車由 AI（困難）以實際物理完成三圈
-ok 20 - 高雄港灣雨夜：四台車由 AI（困難）以實際物理完成三圈
+ok 27 - 高雄港灣雨夜：四台車由 AI（困難）以實際物理完成三圈
   ---
-  duration_ms: 76.0766
+  duration_ms: 73.7769
   type: 'test'
   ...
 # Subtest: 山城曙光：四台車由 AI（困難）以實際物理完成三圈
-ok 21 - 山城曙光：四台車由 AI（困難）以實際物理完成三圈
+ok 28 - 山城曙光：四台車由 AI（困難）以實際物理完成三圈
   ---
-  duration_ms: 62.4249
+  duration_ms: 65.9775
   type: 'test'
   ...
 # Subtest: 未來工業環線：四台車由 AI（困難）以實際物理完成三圈
-ok 22 - 未來工業環線：四台車由 AI（困難）以實際物理完成三圈
+ok 29 - 未來工業環線：四台車由 AI（困難）以實際物理完成三圈
   ---
-  duration_ms: 76.0857
+  duration_ms: 80.1718
   type: 'test'
   ...
 # Subtest: 完賽後成績鎖定，不再產生圈數事件
-ok 23 - 完賽後成績鎖定，不再產生圈數事件
+ok 30 - 完賽後成績鎖定，不再產生圈數事件
   ---
-  duration_ms: 152.3774
+  duration_ms: 145.7935
   type: 'test'
   ...
 # Subtest: 倒數結束前車輛不會移動、計時不會開始
-ok 24 - 倒數結束前車輛不會移動、計時不會開始
+ok 31 - 倒數結束前車輛不會移動、計時不會開始
   ---
-  duration_ms: 0.7112
+  duration_ms: 0.6988
   type: 'test'
   ...
 # Subtest: 四台車的實測指標彼此不同且符合定位
-ok 25 - 四台車的實測指標彼此不同且符合定位
+ok 32 - 四台車的實測指標彼此不同且符合定位
   ---
-  duration_ms: 29.7667
+  duration_ms: 32.6584
   type: 'test'
   ...
 # Subtest: 同一試駕彎道，四台車的過彎表現不同
-ok 26 - 同一試駕彎道，四台車的過彎表現不同
+ok 33 - 同一試駕彎道，四台車的過彎表現不同
   ---
-  duration_ms: 13.8978
+  duration_ms: 12.3707
   type: 'test'
   ...
 # Subtest: 原地打轉無法取得能量；受控過彎可以蓄能
-ok 27 - 原地打轉無法取得能量；受控過彎可以蓄能
+ok 34 - 原地打轉無法取得能量；受控過彎可以蓄能
   ---
-  duration_ms: 31.2759
+  duration_ms: 47.4663
   type: 'test'
   ...
 # Subtest: 技能：消耗、冷卻、能量不足時失敗
-ok 28 - 技能：消耗、冷卻、能量不足時失敗
+ok 35 - 技能：消耗、冷卻、能量不足時失敗
   ---
-  duration_ms: 0.4933
+  duration_ms: 1.0148
   type: 'test'
   ...
 # Subtest: 原版 neonNightDriveBest 歸入「舊版霓虹市區」，且原始鍵保留
-ok 29 - 原版 neonNightDriveBest 歸入「舊版霓虹市區」，且原始鍵保留
+ok 36 - 原版 neonNightDriveBest 歸入「舊版霓虹市區」，且原始鍵保留
   ---
-  duration_ms: 2.1248
+  duration_ms: 2.0247
   type: 'test'
   ...
 # Subtest: 沒有舊紀錄時不會產生假紀錄
-ok 30 - 沒有舊紀錄時不會產生假紀錄
+ok 37 - 沒有舊紀錄時不會產生假紀錄
   ---
-  duration_ms: 0.279
+  duration_ms: 0.2682
   type: 'test'
   ...
 # Subtest: 同一場比賽只發一次經驗值；重新開啟後等級、解鎖、紀錄仍存在
-ok 31 - 同一場比賽只發一次經驗值；重新開啟後等級、解鎖、紀錄仍存在
+ok 38 - 同一場比賽只發一次經驗值；重新開啟後等級、解鎖、紀錄仍存在
   ---
-  duration_ms: 2.4417
+  duration_ms: 2.105
   type: 'test'
   ...
 # Subtest: 等級解鎖技能配置欄
-ok 32 - 等級解鎖技能配置欄
+ok 39 - 等級解鎖技能配置欄
   ---
-  duration_ms: 0.6783
+  duration_ms: 0.5909
+  type: 'test'
+  ...
+# Subtest: 總經驗值與等級換算互為反函數；帳號快取與訪客存檔分開保存
+ok 40 - 總經驗值與等級換算互為反函數；帳號快取與訪客存檔分開保存
+  ---
+  duration_ms: 1.0791
   type: 'test'
   ...
 # Subtest: 損毀的存檔可以恢復成預設值
-ok 33 - 損毀的存檔可以恢復成預設值
+ok 41 - 損毀的存檔可以恢復成預設值
   ---
-  duration_ms: 0.3761
+  duration_ms: 0.3981
   type: 'test'
   ...
 # Subtest: 健康檢查與 API 資訊；未產生 APK 時不提供下載
-ok 34 - 健康檢查與 API 資訊；未產生 APK 時不提供下載
+ok 42 - 健康檢查與 API 資訊；未產生 APK 時不提供下載
   ---
-  duration_ms: 32.6357
+  duration_ms: 34.7306
   type: 'test'
   ...
 # Subtest: 房號錯誤有明確提示
-ok 35 - 房號錯誤有明確提示
+ok 43 - 房號錯誤有明確提示
   ---
-  duration_ms: 18.0472
+  duration_ms: 17.0214
   type: 'test'
   ...
 # Subtest: 8 人同場即時比賽、第 9 人房滿、比賽中禁止加入、結算只送一次
-ok 36 - 8 人同場即時比賽、第 9 人房滿、比賽中禁止加入、結算只送一次
+ok 44 - 8 人同場即時比賽、第 9 人房滿、比賽中禁止加入、結算只送一次
   ---
-  duration_ms: 20287.2686
+  duration_ms: 20281.916
   type: 'test'
   ...
 # Subtest: 斷線重連回到原車位、不複製車輛；重複封包被忽略；逾時標記未完賽
-ok 37 - 斷線重連回到原車位、不複製車輛；重複封包被忽略；逾時標記未完賽
+ok 45 - 斷線重連回到原車位、不複製車輛；重複封包被忽略；逾時標記未完賽
   ---
-  duration_ms: 6077.5616
+  duration_ms: 6064.7465
   type: 'test'
   ...
 # Subtest: 房主離開時移交房主，其他人可以繼續開賽
-ok 38 - 房主離開時移交房主，其他人可以繼續開賽
+ok 46 - 房主離開時移交房主，其他人可以繼續開賽
   ---
-  duration_ms: 15.6338
+  duration_ms: 16.037
   type: 'test'
   ...
-1..38
-# tests 38
+1..46
+# tests 46
 # suites 0
-# pass 38
+# pass 46
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 74496.9064
+# duration_ms 120518.2373

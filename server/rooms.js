@@ -44,7 +44,15 @@ class Hub {
   hello(conn, msg) {
     let token = typeof msg.token === 'string' && /^[a-f0-9]{16,64}$/.test(msg.token) ? msg.token : null;
     if (!token) token = crypto.randomBytes(16).toString('hex');
+    const store = this.opts.store;
+    let acct = null;
+    try { acct = store && msg.session ? store.accountForToken(msg.session) : null; } catch (e) { acct = null; }
     let p = this.byToken.get(token);
+    // 已登入帳號換了分頁或裝置：接回同一帳號「斷線中」的車手，避免同一帳號在房內出現兩台車
+    if (!p && acct) {
+      const prev = [...this.byToken.values()].find(x => x.accountId === acct.id && x.room && !x.connected);
+      if (prev) { this.byToken.delete(prev.token); prev.token = token; this.byToken.set(token, prev); p = prev; }
+    }
     if (p) {
       if (p.conn && p.conn !== conn) { p.conn.send({ t: 'kicked', msg: '已在其他分頁或裝置重新連線' }); p.conn.close(); }
       p.conn = conn; p.connected = true; p.discAt = null;
@@ -56,15 +64,17 @@ class Hub {
     conn.player = p;
     const room = p.room && this.rooms.get(p.room);
     if (!room) p.room = null;
+    // 比賽進行中不切換帳號，結算一律寫入開賽時的帳號
+    if (!(room && room.phase === 'racing')) p.accountId = acct ? acct.id : null;
     p.send = m => p.conn && p.conn.send(m);
-    p.send({ t: 'welcome', id: p.id, token, ver: D.GAME_VERSION, room: room ? room.code : null });
+    p.send({ t: 'welcome', id: p.id, token, ver: D.GAME_VERSION, room: room ? room.code : null, account: p.accountId ? { id: p.accountId } : null });
     if (room) {
       const e = room.race && room.race.get(p.id);
       if (e) e.disconnected = false;
       p.queue = []; p.held = null;
       this.sendRoom(room);
       if (room.phase === 'racing') { p.send(this.startMsg(room)); this.sendSnap(room, p); }
-      if (room.phase === 'results' && room.results) p.send(room.results);
+      if (room.phase === 'results' && room.results) this.sendResults(room, p);
     }
     return p;
   }
@@ -167,7 +177,7 @@ class Hub {
       case 'rematch': {
         if (room.host !== p.id) return fail('NOT_HOST');
         if (room.phase !== 'results') return;
-        room.phase = 'lobby'; room.race = null; room.results = null;
+        room.phase = 'lobby'; room.race = null; room.results = null; room.cloud = null;
         // 結算時已離開的人移出
         room.players = room.players.filter(q => q.connected || (this.now() - q.discAt) < this.opts.grace);
         for (const q of room.players) q.ready = false;
@@ -230,7 +240,7 @@ class Hub {
         k++;
       }
     }
-    room.race = race; room.grid = grid; room.phase = 'racing'; room.tick = 0; room.results = null;
+    room.race = race; room.grid = grid; room.phase = 'racing'; room.tick = 0; room.results = null; room.cloud = null;
     this.sendRoom(room);
     this.broadcast(room, this.startMsg(room));
     this.opts.log(`房間 ${room.code} 開賽：${D.TRACKS[s.track].name}，${grid.length} 台`);
@@ -301,6 +311,11 @@ class Hub {
         charged: c.charged, bump: c.bump, brakeLight: c.brakeLight } : null });
   }
 
+  /** 個人化結算：只附上自己的雲端帳號結果，不會看到別人的帳號資料 */
+  sendResults(room, q) {
+    q.send(Object.assign({}, room.results, { cloud: (room.cloud && room.cloud[q.id]) || null }));
+  }
+
   /** 結算：每場只計算一次經驗值，重連時重送同一份結果 */
   finishRace(room) {
     const race = room.race, st = race.standings();
@@ -317,8 +332,18 @@ class Hub {
     }
     room.results = { t: 'results', raceId: race.raceId, trackId: room.settings.track,
       standings: st.map(s => ({ id: s.id, name: s.name, car: s.carId, human: s.human, rank: s.rank, finished: s.finished, dnf: s.dnf, time: s.time, lapTimes: s.lapTimes, best: s.best })), xp };
+    // 已登入的車手：由伺服器把正式結果寫入資料庫（帳號 ID＋比賽 ID 唯一，只會發一次）
+    room.cloud = {};
+    const store = this.opts.store;
+    for (const s of st) {
+      if (!s.human) continue;
+      const q = room.players.find(x => x.id === s.id);
+      if (!q || !q.accountId || !store) continue;
+      try { room.cloud[q.id] = store.grant(q.accountId, race.raceId, 'mp', xp[s.id], room.settings.track, s.finished); }
+      catch (e) { this.opts.log('寫入經驗值失敗', e); room.cloud[q.id] = { granted: false, error: 'SERVER' }; }
+    }
     room.phase = 'results';
-    this.broadcast(room, room.results);
+    for (const q of room.players) if (q.connected) this.sendResults(room, q);
     this.sendRoom(room);
     this.opts.log(`房間 ${room.code} 結算完成`);
   }

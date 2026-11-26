@@ -14,7 +14,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const exe = ['C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'].find(p => fs.existsSync(p));
 
 (async () => {
-  const app = await createServer({ port: 0, host: '127.0.0.1', log: () => {} });
+  const dataDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'nnd-browser-'));
+  const app = await createServer({ port: 0, host: '127.0.0.1', log: () => {}, dataDir });
   const base = `http://127.0.0.1:${app.port}`;
   const browser = await puppeteer.launch({ executablePath: exe, headless: 'new', args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
   const errors = [];

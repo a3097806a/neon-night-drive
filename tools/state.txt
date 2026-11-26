@@ -1,0 +1,15 @@
+﻿server/db.js exists=True size=9790
+server/api.js exists=True size=8082
+public/js/account.js exists=True size=6315
+render.yaml exists=True size=649
+fly.toml exists=True size=849
+Dockerfile exists=True size=727
+851: function mirrorFor(profile) {
+868: function activate(profile) { Acc.lastSync = Date.now(); Acc.status = 'synced'; useSave(mirrorFor(profile)); }
+1012: addEventListener('online', () => { lastAutoSync = 0; if (save === guest) initAccount(); else autoSync(); });
+1070: initAccount();
+1074: NND.app = { get game() { return G; }, get save() { return save; }, guest, get net() { return net; }, show };
+77: if (room.phase === 'results' && room.results) this.sendResults(room, p);
+315: sendResults(room, q) {
+342: try { room.cloud[q.id] = store.grant(q.accountId, race.raceId, 'mp', xp[s.id], room.settings.track, s.finished); }
+346: for (const q of room.players) if (q.connected) this.sendResults(room, q);

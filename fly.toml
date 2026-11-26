@@ -1,5 +1,8 @@
 # Fly.io 部署設定（使用 Dockerfile；Fly 代理支援 WebSocket 並自動提供 HTTPS）
-# 首次部署：fly launch --no-deploy --copy-config，之後 fly deploy
+# 首次部署：
+#   fly launch --no-deploy --copy-config
+#   fly volumes create nnd_data --size 1 --region nrt   # 車手資料庫的持久化磁碟
+#   fly deploy
 app = "neon-night-drive"
 primary_region = "nrt"
 
@@ -8,11 +11,18 @@ primary_region = "nrt"
 [env]
   HOST = "0.0.0.0"
   PORT = "3000"
+  DATA_DIR = "/data"
+  TRUST_PROXY = "1"
+
+# 車手帳號資料庫：掛載持久化 Volume，重新部署後保留
+[mounts]
+  source = "nnd_data"
+  destination = "/data"
 
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = "off"   # 避免比賽中機器被停止
+  auto_stop_machines = "off"
   auto_start_machines = true
   min_machines_running = 1
 
